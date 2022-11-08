@@ -21,6 +21,9 @@ from vacancies import views
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('hello/', views.hello),
-    path('vacancy/', views.VacancyView.as_view()),
+    path('vacancy/', views.VacancyListView.as_view()),
     path('vacancy/<int:pk>/', views.VacancyDetailView.as_view()),
+    path('vacancy/create/', views.VacancyCreateView.as_view()),
+    path('vacancy/<int:pk>/update/', views.VacancyUpdateView.as_view()),
+    path('vacancy/<int:pk>/delete/', views.VacancyDeleteView.as_view()),
 ]

@@ -66,7 +66,7 @@ class VacancyCreateView(CreateView):
 
 
 @method_decorator(csrf_exempt, name="dispatch")
-class VacancyCreateView(UpdateView):
+class VacancyUpdateView(UpdateView):
     model = Vacancy
     fields = ["slug", "text", "status", "skills"]
 
