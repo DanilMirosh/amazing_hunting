@@ -9,6 +9,7 @@ authors = ["Danil Mirosh <miroshnichenko.da.vi@mail.ru>"]
 python = "^3.10"
 django = "^4.1.3"
 psycopg2 = "^2.9.5"
+pillow = "^9.3.0"
 
 [tool.poetry.dev-dependencies]
 
