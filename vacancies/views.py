@@ -5,7 +5,7 @@ from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
 
-from vacancies.models import Vacancy
+from vacancies.models import Vacancy, Skill
 
 
 def hello(request):
@@ -40,7 +40,11 @@ class VacancyDetailView(DetailView):
 
         return JsonResponse({
             "id": vacancy.id,
-            "text": vacancy.text
+            "text": vacancy.text,
+            "slug": vacancy.slug,
+            "status": vacancy.status,
+            "created": vacancy.create,
+            "user": vacancy.user_id
         })
 
 
@@ -56,7 +60,7 @@ class VacancyCreateView(CreateView):
             user_id=vacancy_data["user_id"],
             slug=vacancy_data["slug"],
             text=vacancy_data["text"],
-            status=vacancy_data["status"],
+            status=vacancy_data["status"]
         )
 
         return JsonResponse({
@@ -79,15 +83,25 @@ class VacancyUpdateView(UpdateView):
         self.object.text = vacancy_data["text"]
         self.object.status = vacancy_data["status"]
 
+        for skill in vacancy_data["skills"]:
+            try:
+                skill_obj = Skill.objects.get(name=skill)
+            except Skill.DoesNotExist:
+                return JsonResponse({"error": "skill not found"}, status=404)
+            self.object.skills.add(skill_obj)
+
         self.object.save()
+
+        list(self.object.skills.all().values_list("name", flat=True))
 
         return JsonResponse({
             "id": self.object.id,
             "text": self.object.text,
             "slug": self.object.slug,
             "status": self.object.status,
-            "created": self.object.created,
+            "created": self.object.create,
             "user": self.object.user_id,
+            "skills": list(self.object.skills.all().values_list("name", flat=True))
         })
 
 
