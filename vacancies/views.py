@@ -22,6 +22,10 @@ class VacancyListView(ListView):
         if search_text:
             self.object_list = self.object_list.filter(text=search_text)
 
+        # СОРТИРОВКА (второй способ через модель)
+        # self.object_list = self.object_list.order_by("text")
+        # self.object_list = self.object_list.order_by("-text")     обратная сортировка
+
         response = []
         for vacancy in self.object_list:
             response.append({
