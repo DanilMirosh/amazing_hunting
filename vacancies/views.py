@@ -1,10 +1,12 @@
 import json
 
+from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.utils.decorators import method_decorator
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
 
+from amazing_hunting import settings
 from vacancies.models import Vacancy, Skill
 
 
@@ -23,15 +25,39 @@ class VacancyListView(ListView):
             self.object_list = self.object_list.filter(text=search_text)
 
         # СОРТИРОВКА (второй способ через модель)
-        # self.object_list = self.object_list.order_by("text")
+        self.object_list = self.object_list.order_by("text")
         # self.object_list = self.object_list.order_by("-text")     обратная сортировка
 
-        response = []
-        for vacancy in self.object_list:
-            response.append({
+        # """
+        # пагинация
+        # 1 - 0:10
+        # 2 - 10:20
+        # 3 - 20:30
+        #
+        # total = self.object.count()
+        # page_number = int(request.GET.get("page", 1))
+        # offset = int(page_number - 1) * settings.TOTAL_ON_PAGE
+        # if (page_number - 1) * settings.TOTAL_ON_PAGE < total:
+        #     self.object_list = self.object_list[offset:offset + settings.TOTAL_ON_PAGE]
+        # else:
+        #     self.object_list = self.object_list[offset:offset + total]
+        # """
+        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
+        page_number = request.GET.get("page")
+        page_obj = paginator.get_page(page_number)
+
+        vacancies = []
+        for vacancy in page_obj:
+            vacancies.append({
                 "id": vacancy.id,
                 "text": vacancy.text,
             })
+
+        response = {
+            "items": vacancies,
+            "num_pages": paginator.num_pages,
+            "total": paginator.count
+        }
 
         return JsonResponse(response, safe=False)
 
