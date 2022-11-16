@@ -1,175 +1,43 @@
-import json
-
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
 from django.db.models import Count, Avg
 from django.http import HttpResponse, JsonResponse
-from django.shortcuts import get_object_or_404
-from django.utils.decorators import method_decorator
 from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import DetailView, ListView, CreateView, UpdateView, DeleteView
+from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
 
 from amazing_hunting import settings
-from vacancies.models import Vacancy, Skill
-from vacancies.serializers import VacancyListSerializer, VacancyDetailSerializer, VacancyCreateSerializer
+from vacancies.models import Vacancy
+from vacancies.serializers import VacancyListSerializer, VacancyDetailSerializer, VacancyCreateSerializer, \
+    VacancyUpdateSerializer, VacancyDestroySerializer
 
 
 def hello(request):
     return HttpResponse("Hello world!")
 
 
-class VacancyListView(ListView):
-    model = Vacancy
-
-    def get(self, request, *args, **kwargs):
-        super().get(request, *args, **kwargs)
-
-        search_text = request.GET.get("text", None)
-        if search_text:
-            self.object_list = self.object_list.filter(text=search_text)
-
-        # СОРТИРОВКА (второй способ через модель)
-        self.object_list = self.object_list.order_by("text")
-        # self.object_list = self.object_list.order_by("-text")     обратная сортировка
-
-        # """
-        # пагинация
-        # 1 - 0:10
-        # 2 - 10:20
-        # 3 - 20:30
-        #
-        # total = self.object.count()
-        # page_number = int(request.GET.get("page", 1))
-        # offset = int(page_number - 1) * settings.TOTAL_ON_PAGE
-        # if (page_number - 1) * settings.TOTAL_ON_PAGE < total:
-        #     self.object_list = self.object_list[offset:offset + settings.TOTAL_ON_PAGE]
-        # else:
-        #     self.object_list = self.object_list[offset:offset + total]
-        # """
-        paginator = Paginator(self.object_list, settings.TOTAL_ON_PAGE)
-        page_number = request.GET.get("page")
-        page_obj = paginator.get_page(page_number)
-
-        # vacancies = []
-        # for vacancy in page_obj:
-        #     vacancies.append({
-        #         "id": vacancy.id,
-        #         "text": vacancy.text,
-        #         "slug": vacancy.slug,
-        #         "status": vacancy.status,
-        #         "created": vacancy.create,
-        #         "user": vacancy.user_id,
-        #         "skills": list(map(str, vacancy.skills.all()))
-        #     })
-        list(map(lambda x: setattr(x, "username", x.user.username if x.user else None), page_obj))
-
-        response = {
-            "items": VacancyListSerializer(page_obj, many=True).data,
-            "num_pages": paginator.num_pages,
-            "total": paginator.count
-        }
-
-        return JsonResponse(response, safe=False)
+class VacancyListView(ListAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancyListSerializer
 
 
-class VacancyDetailView(DetailView):
-    model = Vacancy
-
-    def get(self, request, *args, **kwargs):
-        vacancy = self.get_object()
-
-        return JsonResponse(VacancyDetailSerializer(vacancy).data)
+class VacancyDetailView(RetrieveAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancyDetailSerializer
 
 
-@method_decorator(csrf_exempt, name="dispatch")
-class VacancyCreateView(CreateView):
-    model = Vacancy
-    fields = ["user", "slug", "text", "status", "created", "skills"]
-
-    def post(self, request, *args, **kwargs):
-        vacancy_data = VacancyCreateSerializer(data=json.loads(request.body))
-        if vacancy_data.is_valid():
-            vacancy = vacancy_data.save()
-        else:
-            return JsonResponse(vacancy_data.errors)
-
-        return JsonResponse(vacancy_data.data)
-
-        # vacancy = Vacancy.objects.create(
-        #     slug=vacancy_data["slug"],
-        #     text=vacancy_data["text"],
-        #     status=vacancy_data["status"]
-        # )
-        #
-        # vacancy.user = get_object_or_404(User, pk=vacancy_data["user_id"])
-        #
-        # for skill in vacancy_data["skills"]:
-        #     skill_obj, created = Skill.objects.get_or_create(
-        #         name=skill,
-        #         defaults={
-        #             "is_active": True,
-        #         }
-        #     )
-        #     vacancy.skills.add(skill_obj)
-        # vacancy.save()
-        #
-        # return JsonResponse({
-        #     "id": vacancy.id,
-        #     "text": vacancy.text,
-        #     "slug": vacancy.slug,
-        #     "status": vacancy.status,
-        #     "created": vacancy.created,
-        #     "user": vacancy.user_id,
-        #     "skills": list(map(str, vacancy.skills.all()))
-        # })
+class VacancyCreateView(CreateAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancyCreateSerializer
 
 
-@method_decorator(csrf_exempt, name="dispatch")
-class VacancyUpdateView(UpdateView):
-    model = Vacancy
-    fields = ["slug", "text", "status", "skills"]
-
-    def post(self, request, *args, **kwargs):
-        super().post(request, *args, **kwargs)
-
-        vacancy_data = json.loads(request.body)
-
-        self.object.slug = vacancy_data["slug"]
-        self.object.text = vacancy_data["text"]
-        self.object.status = vacancy_data["status"]
-
-        for skill in vacancy_data["skills"]:
-            try:
-                skill_obj = Skill.objects.get(name=skill)
-            except Skill.DoesNotExist:
-                return JsonResponse({"error": "skill not found"}, status=404)
-            self.object.skills.add(skill_obj)
-
-        self.object.save()
-
-        list(self.object.skills.all().values_list("name", flat=True))
-
-        return JsonResponse({
-            "id": self.object.id,
-            "text": self.object.text,
-            "slug": self.object.slug,
-            "status": self.object.status,
-            "created": self.object.created,
-            "user": self.object.user_id,
-            "skills": list(self.object.skills.all().values_list("name", flat=True))
-        })
+class VacancyUpdateView(UpdateAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancyUpdateSerializer
 
 
-@method_decorator(csrf_exempt, name="dispatch")
-class VacancyDeleteView(DeleteView):
-    model = Vacancy
-    success_url = "/"
-
-    def delete(self, request, *args, **kwargs):
-        super().delete(request, *args, **kwargs)
-
-        return JsonResponse({"status": "ok"}, status=200)
+class VacancyDeleteView(DestroyAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancyDestroySerializer
 
 
 class UserVacancyDetailView(View):
