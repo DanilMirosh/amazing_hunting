@@ -25,7 +25,7 @@ class Vacancy(models.Model):
     slug = models.SlugField(max_length=50)
     text = models.CharField(max_length=2000)
     status = models.CharField(max_length=6, choices=STATUS, default="draft")
-    create = models.DateField(auto_now_add=True)
+    created = models.DateField(auto_now_add=True)
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True)
     skills = models.ManyToManyField(Skill)
 
