@@ -32,6 +32,11 @@ class VacancyListView(ListAPIView):
                 text__contains=vacancy_text
             )
 
+        skill_name = request.GET.get('skill', None)
+        if skill_name:
+            self.queryset = self.queryset.filter(
+                skills__name__icontains=skill_name
+            )
         return super().get(request, *args, **kwargs)
 
 
