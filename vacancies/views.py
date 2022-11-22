@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from django.core.paginator import Paginator
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, F
 from django.http import HttpResponse, JsonResponse
 from django.views import View
 from rest_framework.generics import ListAPIView, RetrieveAPIView, CreateAPIView, UpdateAPIView, DestroyAPIView
@@ -90,3 +90,16 @@ class UserVacancyDetailView(View):
         }
 
         return JsonResponse(response)
+
+
+class VacancyLikeView(UpdateAPIView):
+    queryset = Vacancy.objects.all()
+    serializer_class = VacancyDetailSerializer
+
+    def put(self, request, *args, **kwargs):
+        Vacancy.objects.filter(pk__in=request.data).update(likes=F('likes') + 1)
+
+        return JsonResponse(
+            VacancyDetailSerializer(Vacancy.objects.filter(pk__in=request.data), many=True).data,
+            safe=False
+        )
