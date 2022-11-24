@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'vacancies',
     'companies',
+    'authentication',
 ]
 
 MIDDLEWARE = [
@@ -162,3 +163,6 @@ REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
 }
+
+AUTH_USER_MODEL = 'authentication.User'
+
