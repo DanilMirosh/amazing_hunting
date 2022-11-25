@@ -9,6 +9,7 @@ from rest_framework.viewsets import ModelViewSet
 
 from amazing_hunting import settings
 from vacancies.models import Vacancy, Skill
+from vacancies.permissions import VacancyCreatePermission
 from vacancies.serializers import VacancyListSerializer, VacancyDetailSerializer, VacancyCreateSerializer, \
     VacancyUpdateSerializer, VacancyDestroySerializer, SkillSerializer
 
@@ -56,6 +57,7 @@ class VacancyDetailView(RetrieveAPIView):
 class VacancyCreateView(CreateAPIView):
     queryset = Vacancy.objects.all()
     serializer_class = VacancyCreateSerializer
+    permission_classes = [IsAuthenticated, VacancyCreatePermission]
 
 
 class VacancyUpdateView(UpdateAPIView):
