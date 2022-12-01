@@ -12,8 +12,8 @@ def test_vacancy_list(client, vacancy):
         "previous": None,
         "results": [{
             "id": vacancy.pk,
-            "text": "test",
-            "slug": "test text",
+            "text": "test text",
+            "slug": "test",
             "status": "draft",
             "created": date.today().strftime("%Y-%m-%d"),
             "username": "test",

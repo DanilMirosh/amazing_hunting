@@ -13,7 +13,7 @@ class UserFactory(factory.django.DjangoModelFactory):
 
 
 class VacancyFactory(factory.django.DjangoModelFactory):
-    class Mate:
+    class Meta:
         model = Vacancy
 
     slug = "test"
