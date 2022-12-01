@@ -2,26 +2,21 @@ from datetime import date
 
 import pytest
 
-from vacancies.models import Vacancy
-
 
 @pytest.mark.django_db
-def test_vacancy_list(client):
-    vacancy = Vacancy.objects.create(
-        slug="123",
-        text="123",
-    )
+def test_vacancy_list(client, vacancy):
+
     expected_response = {
         "count": 1,
         "next": None,
         "previous": None,
         "results": [{
             "id": vacancy.pk,
-            "text": "123",
-            "slug": "123",
+            "text": "test",
+            "slug": "test text",
             "status": "draft",
             "created": date.today().strftime("%Y-%m-%d"),
-            "username": None,
+            "username": "test",
             "skills": []
         }]
     }
