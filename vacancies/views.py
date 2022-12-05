@@ -68,6 +68,7 @@ class VacancyCreateView(CreateAPIView):
 class VacancyUpdateView(UpdateAPIView):
     queryset = Vacancy.objects.all()
     serializer_class = VacancyUpdateSerializer
+    http_method_names = ["put"]
 
 
 class VacancyDeleteView(DestroyAPIView):
@@ -105,7 +106,9 @@ def user_vacancies(request):
 class VacancyLikeView(UpdateAPIView):
     queryset = Vacancy.objects.all()
     serializer_class = VacancyDetailSerializer
+    http_method_names = ["put"]
 
+    @extend_schema(deprecated=True)
     def put(self, request, *args, **kwargs):
         Vacancy.objects.filter(pk__in=request.data).update(likes=F('likes') + 1)
 
